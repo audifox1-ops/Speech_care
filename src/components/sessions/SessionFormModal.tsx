@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -17,17 +18,20 @@ import {
 } from "@/components/ui/dialog"
 
 import { cn } from "@/lib/utils"
+import { useStudents } from "@/hooks/useStudents"
 import type { Session, SessionInsert } from "@/types/session"
 
 interface SessionFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  studentId: string
+  studentId?: string
   session?: Session | null
   onSave: (session: SessionInsert) => Promise<void>
 }
 
 export function SessionFormModal({ open, onOpenChange, studentId, session, onSave }: SessionFormModalProps) {
+  const { students } = useStudents()
+  const [selectedStudentId, setSelectedStudentId] = useState<string>(studentId || "")
   const [sessionDate, setSessionDate] = useState<Date | undefined>(new Date())
   const [content, setContent] = useState("")
   const [progress, setProgress] = useState("")
@@ -50,16 +54,28 @@ export function SessionFormModal({ open, onOpenChange, studentId, session, onSav
       setNextGoal("")
       setScore("")
     }
-  }, [session, open])
+    
+    if (studentId) {
+      setSelectedStudentId(studentId)
+    } else if (session) {
+      setSelectedStudentId(session.student_id)
+    } else {
+      setSelectedStudentId("")
+    }
+  }, [session, open, studentId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!sessionDate) return
+    if (!selectedStudentId) {
+      alert("학생을 선택해주세요.")
+      return
+    }
 
     setIsSaving(true)
     try {
       await onSave({
-        student_id: studentId,
+        student_id: selectedStudentId,
         session_date: sessionDate.toISOString(),
         content: content || null,
         progress: progress || null,
@@ -83,6 +99,25 @@ export function SessionFormModal({ open, onOpenChange, studentId, session, onSav
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          {/* 학생 선택 (studentId가 외부에서 주어지지 않은 경우에만 표시) */}
+          {!studentId && (
+            <div className="space-y-2">
+              <Label>학생 선택 *</Label>
+              <Select value={selectedStudentId} onValueChange={setSelectedStudentId} disabled={!!session}>
+                <SelectTrigger>
+                  <SelectValue placeholder="학생을 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.map((student) => (
+                    <SelectItem key={student.id} value={student.id}>
+                      {student.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>세션 날짜 *</Label>

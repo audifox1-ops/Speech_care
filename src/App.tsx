@@ -11,6 +11,7 @@ import { SmsTemplates } from '@/pages/messages/SmsTemplates'
 import { SmsLogs } from '@/pages/messages/SmsLogs'
 import { DocTemplates } from '@/pages/documents/DocTemplates'
 import { DocGenerate } from '@/pages/documents/DocGenerate'
+import { Journals } from '@/pages/Journals'
 import { Settings } from '@/pages/Settings'
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
             <Route path="messages/logs" element={<SmsLogs />} />
             <Route path="documents/templates" element={<DocTemplates />} />
             <Route path="documents/generate" element={<DocGenerate />} />
+            <Route path="journals" element={<Journals />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
